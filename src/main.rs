@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use coord_2d::{Coord, Size};
 use grid_2d::Grid;
-use noise::{Seedable, Perlin, Fbm, MultiFractal};
+use noise::{Fbm, MultiFractal, Perlin, Seedable};
 
 pub mod map_data;
 use self::map_data::*;
@@ -61,7 +61,11 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
             ui.add(egui::Slider::new(&mut frequency, 0.0..=2.0f64).text("Frequency"));
             ui.add(egui::Slider::new(&mut lacunarity, 1.0..=3.5f64).text("Lacunarity"));
             ui.add(egui::Slider::new(&mut persistence, 0.0..=1.0f64).text("Persistence"));
-            map_data.noise = Fbm::new(seed).set_octaves(octaves).set_frequency(frequency).set_lacunarity(lacunarity).set_persistence(persistence);
+            map_data.noise = Fbm::new(seed)
+                .set_octaves(octaves)
+                .set_frequency(frequency)
+                .set_lacunarity(lacunarity)
+                .set_persistence(persistence);
         });
     });
     egui::SidePanel::right("grid").show(egui_contexts.ctx_mut(), |ui| {
@@ -70,7 +74,9 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
 
         ui.add(egui::Slider::new(&mut width, 1..=100).text("Width"));
         ui.add(egui::Slider::new(&mut height, 1..=100).text("Height"));
-        ui.add(egui::Slider::new(&mut map_data.sample_distance, 0.0..=1.0f64).text("Sample Distance"));
+        ui.add(
+            egui::Slider::new(&mut map_data.sample_distance, 0.0..=1.0f64).text("Sample Distance"),
+        );
         ui.horizontal(|ui| {
             ui.add(egui::DragValue::new(&mut map_data.sample_offset.0).speed(0.01));
             ui.label("Offset X");
@@ -93,7 +99,8 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
                 ui.horizontal(|ui| {
                     for x in 0..map_data.grid.width() {
                         let mut value = String::new();
-                        value.push(*map_data.grid.get_checked(Coord::new(x as i32, y as i32)) as char
+                        value.push(
+                            *map_data.grid.get_checked(Coord::new(x as i32, y as i32)) as char
                         );
                         ui.monospace(value);
                     }
@@ -102,4 +109,3 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
         });
     });
 }
-
