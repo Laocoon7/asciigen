@@ -7,7 +7,7 @@ const _ASCII_GRAYSCALE_92: &'static str =
     " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
 const ASCII_GRAYSCALE_70: &'static str =
     "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
-const _ASCII_GRAYSCALE_10: &'static str = " .:-=+*#%@";
+const ASCII_GRAYSCALE_10: &'static str = " .:-=+*#%@";
 const DEFAULT_WIDTH: u32 = 80;
 const DEFAULT_HEIGHT: u32 = 45;
 const DEFAULT_OFFSET: (f64, f64) = (0.0, 0.0);
@@ -67,10 +67,15 @@ impl MapData {
 
         let index = ((value - m_min) / (m_max - m_min) * (t_max - t_min) + t_min) as usize;
         // println!("[{}, {}] {}, -> {}", x, y, value, index);
-        if self.reverse {
-            self.grayscale.as_bytes()[index]
+        let grayscale = if self.grayscale.len() > 0 {
+            self.grayscale.as_bytes()
         } else {
-            self.grayscale.as_bytes()[self.grayscale.len() - 1 - index]
+            ASCII_GRAYSCALE_10.as_bytes()
+        };
+        if self.reverse {
+            grayscale[index]
+        } else {
+            grayscale[self.grayscale.len() - 1 - index]
         }
     }
 }
