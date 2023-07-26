@@ -8,6 +8,7 @@ const _ASCII_GRAYSCALE_92: &'static str =
 const ASCII_GRAYSCALE_70: &'static str =
     "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
 const ASCII_GRAYSCALE_10: &'static str = " .:-=+*#%@";
+const _ASCII_TERRAIN: &'static str = "^++*~~~~~~..";
 const DEFAULT_WIDTH: u32 = 80;
 const DEFAULT_HEIGHT: u32 = 45;
 const DEFAULT_OFFSET: (f64, f64) = (0.0, 0.0);
@@ -71,23 +72,24 @@ impl MapData {
     }
 
     fn get_grayscale(&self, height: f64) -> u8 {
-        let value = height.clamp(-1.0, 1.0);
-        let m_min = -1 as f64;
-        let m_max = 1 as f64;
-        let t_min = 0 as f64;
-        let t_max = (self.grayscale.len() - 1) as f64;
-
-        let index = ((value - m_min) / (m_max - m_min) * (t_max - t_min) + t_min) as usize;
-        // println!("[{}, {}] {}, -> {}", x, y, value, index);
         let grayscale = if self.grayscale.len() > 0 {
             self.grayscale.as_bytes()
         } else {
             ASCII_GRAYSCALE_10.as_bytes()
         };
+
+        let value = height.clamp(-1.0, 1.0);
+        let m_min = -1 as f64;
+        let m_max = 1 as f64;
+        let t_min = 0 as f64;
+        let t_max = (grayscale.len() - 1) as f64;
+
+        let index = ((value - m_min) / (m_max - m_min) * (t_max - t_min) + t_min) as usize;
+
         if self.reverse {
             grayscale[index]
         } else {
-            grayscale[self.grayscale.len() - 1 - index]
+            grayscale[grayscale.len() - 1 - index]
         }
     }
 }
