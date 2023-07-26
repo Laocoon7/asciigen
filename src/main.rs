@@ -79,6 +79,11 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
             ui.add(egui::DragValue::new(&mut map_data.sample_offset.1).speed(0.01));
             ui.label("Offset Y");
         });
+        ui.vertical(|ui| {
+            ui.label("Grayscale:");
+            ui.text_edit_singleline(&mut map_data.grayscale);
+        });
+
         map_data.grid = Grid::new_default(Size::new(width, height));
         map_data.update();
     });

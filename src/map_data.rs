@@ -3,9 +3,11 @@ use coord_2d::Size;
 use grid_2d::Grid;
 use noise::{Fbm, Perlin, NoiseFn};
 
-const ASCII_GRAYSCALE: &'static str = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
-const DEFAULT_WIDTH: u32 = 50;
-const DEFAULT_HEIGHT: u32 = 50;
+const _ASCII_GRAYSCALE_92: &'static str = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+const ASCII_GRAYSCALE_70: &'static str = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+const _ASCII_GRAYSCALE_10: &'static str = " .:-=+*#%@";
+const DEFAULT_WIDTH: u32 = 80;
+const DEFAULT_HEIGHT: u32 = 45;
 const DEFAULT_OFFSET: (f64, f64) = (0.0, 0.0);
 const DEFAULT_DISTANCE: f64 = 0.03;
 const DEFAULT_SEED: u32 = 0;
@@ -25,7 +27,7 @@ impl Default for MapData {
     fn default() -> Self {
         Self {
             reverse: false,
-            grayscale: ASCII_GRAYSCALE.to_string(),
+            grayscale: ASCII_GRAYSCALE_70.to_string(),
             grid: Grid::new_default(Size::new(DEFAULT_WIDTH, DEFAULT_HEIGHT)),
             sample_offset: DEFAULT_OFFSET,
             sample_distance: DEFAULT_DISTANCE,
