@@ -1,0 +1,6 @@
+# AsciiGen
+A simple tool to look at, and play around with, perlin noise displayed as ascii symbols. The UI should be gone through again. It is merely functional as it is used as a tool for finding settings I like for use in other projects.
+
+Perlin noise settings can be found across the top menu. Grid settings can be found down the side menu. You can click/drag the offsets to "move the noise around" as well as edit the grayscale characters. The "Reverse" setting determines a "left to right" vs a "right to left" order for the grayscale.
+
+![version_0_1_0](./version_0_1_0.png)
