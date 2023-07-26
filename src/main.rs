@@ -100,7 +100,7 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
                     for x in 0..map_data.grid.width() {
                         let mut value = String::new();
                         value.push(
-                            *map_data.grid.get_checked(Coord::new(x as i32, y as i32)) as char
+                            map_data.get_grayscale_at(Coord::new(x as i32, y as i32)) as char
                         );
                         ui.monospace(value);
                     }

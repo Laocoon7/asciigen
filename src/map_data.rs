@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use coord_2d::Size;
+use coord_2d::{Coord, Size};
 use grid_2d::Grid;
 use noise::{Fbm, NoiseFn, Perlin};
 
@@ -18,7 +18,7 @@ const DEFAULT_SEED: u32 = 0;
 pub struct MapData {
     pub reverse: bool,
     pub grayscale: String,
-    pub grid: Grid<u8>,
+    pub grid: Grid<f64>,
     pub sample_offset: (f64, f64),
     pub sample_distance: f64,
     pub noise: Fbm<Perlin>,
@@ -54,12 +54,24 @@ impl MapData {
                 coord.x as f64 * self.sample_distance + self.sample_offset.0,
                 coord.y as f64 * self.sample_distance + self.sample_offset.1,
             ]);
-            *self.grid.get_checked_mut(coord) = self.get_grayscale(height);
+            *self.grid.get_checked_mut(coord) = height;
         }
     }
 
-    fn get_grayscale(&self, value: f64) -> u8 {
-        let value = value.clamp(-1.0, 1.0);
+    pub fn get_height_at(&self, coord: Coord) -> Option<f64> {
+        self.grid.get(coord).cloned()
+    }
+
+    pub fn get_grayscale_at(&self, coord: Coord) -> u8 {
+        if let Some(height) = self.grid.get(coord) {
+            self.get_grayscale(*height)
+        } else {
+            0
+        }
+    }
+
+    fn get_grayscale(&self, height: f64) -> u8 {
+        let value = height.clamp(-1.0, 1.0);
         let m_min = -1 as f64;
         let m_max = 1 as f64;
         let t_min = 0 as f64;
