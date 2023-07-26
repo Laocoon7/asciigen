@@ -55,6 +55,7 @@ fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
             let mut lacunarity = map_data.noise.lacunarity;
             let mut persistence = map_data.noise.persistence;
             const MAX_OCTAVES: usize = Fbm::<Perlin>::MAX_OCTAVES - 2;
+            ui.checkbox(&mut map_data.reverse, "Reverse");
             ui.add(egui::Slider::new(&mut seed, 0..=u32::MAX - MAX_OCTAVES as u32).text("Seed"));
             ui.add(egui::Slider::new(&mut octaves, 1..=MAX_OCTAVES).text("Octaves"));
             ui.add(egui::Slider::new(&mut frequency, 0.0..=2.0f64).text("Frequency"));

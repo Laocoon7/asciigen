@@ -6,13 +6,14 @@ use noise::{Fbm, Perlin, NoiseFn};
 const ASCII_GRAYSCALE: &'static str = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
 const DEFAULT_WIDTH: u32 = 50;
 const DEFAULT_HEIGHT: u32 = 50;
-const DEFAULT_OFFSET: (f64, f64) = (0.6, 0.6);
+const DEFAULT_OFFSET: (f64, f64) = (0.0, 0.0);
 const DEFAULT_DISTANCE: f64 = 0.03;
 const DEFAULT_SEED: u32 = 0;
 
 
 #[derive(Resource)]
 pub struct MapData {
+    pub reverse: bool,
     pub grayscale: String,
     pub grid: Grid<u8>,
     pub sample_offset: (f64, f64),
@@ -23,6 +24,7 @@ pub struct MapData {
 impl Default for MapData {
     fn default() -> Self {
         Self {
+            reverse: false,
             grayscale: ASCII_GRAYSCALE.to_string(),
             grid: Grid::new_default(Size::new(DEFAULT_WIDTH, DEFAULT_HEIGHT)),
             sample_offset: DEFAULT_OFFSET,
@@ -35,11 +37,11 @@ impl Default for MapData {
 impl MapData {
     pub fn new(size: Size, seed: u32, sample_offset: (f64, f64), sample_distance: f64) -> Self {
         Self {
-            grayscale: ASCII_GRAYSCALE.to_string(),
             grid: Grid::new_default(size),
             sample_offset,
             sample_distance,
             noise: Fbm::new(seed),
+            ..Default::default()
         }
     }
 
@@ -64,6 +66,10 @@ impl MapData {
 
         let index = ((value - m_min) / (m_max - m_min) * (t_max - t_min) + t_min) as usize;
         // println!("[{}, {}] {}, -> {}", x, y, value, index);
-        self.grayscale.as_bytes()[index]
+        if self.reverse {
+            self.grayscale.as_bytes()[index]
+        } else {
+            self.grayscale.as_bytes()[self.grayscale.len() - 1 - index]
+        }
     }
 }
