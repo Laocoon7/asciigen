@@ -2,41 +2,25 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use coord_2d::{Coord, Size};
 use grid_2d::Grid;
-use noise::{Fbm, NoiseFn, Perlin, Seedable};
+use noise::{Seedable, Perlin, Fbm, MultiFractal};
 
-#[derive(Resource)]
-struct MapData {
-    grid: Grid<u8>,
-    sample_offset: (f64, f64),
-    sample_distance: f64,
-    noise: Fbm<Perlin>,
-}
-
-impl MapData {
-    pub fn new(size: Size, seed: u32, sample_offset: (f64, f64), sample_distance: f64) -> Self {
-        Self {
-            grid: Grid::new_default(size),
-            sample_offset,
-            sample_distance,
-            noise: Fbm::new(seed),
-        }
-    }
-}
+pub mod map_data;
+use self::map_data::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                resolution: [1920., 1080.].into(),
+                resolution: [800., 600.].into(),
                 title: "AsciiGen".to_string(),
                 ..Default::default()
             }),
             ..Default::default()
         }))
         .add_plugins(EguiPlugin)
-        .insert_resource(MapData::new(Size::new(100, 100), 0, (0.6, 0.6), 0.003))
+        .insert_resource(MapData::default())
         .add_systems(Startup, setup_font)
-        .add_systems(Update, (on_grid_changed, draw_screen).chain())
+        .add_systems(Update, draw_screen)
         .run();
 }
 
@@ -62,27 +46,40 @@ fn setup_font(mut egui_contexts: EguiContexts) {
     egui_contexts.ctx_mut().set_fonts(fonts);
 }
 
-fn on_grid_changed(map_data: Option<ResMut<MapData>>) {
-    let Some(mut map_data) = map_data else { return; };
-    if map_data.is_changed() {
-        update_grid(&mut map_data);
-    }
-}
-
-fn draw_screen(mut egui_contexts: EguiContexts, map_data: ResMut<MapData>) {
+fn draw_screen(mut egui_contexts: EguiContexts, mut map_data: ResMut<MapData>) {
     egui::TopBottomPanel::top("noise").show(egui_contexts.ctx_mut(), |ui| {
         ui.horizontal(|ui| {
-            ui.label(format!("Seed: {}", map_data.noise.seed()));
-            ui.label(format!("Octaves: {}", map_data.noise.octaves));
-            ui.label(format!("Frequency: {}", map_data.noise.frequency));
-            ui.label(format!("Lacunarity: {}", map_data.noise.lacunarity));
-            ui.label(format!("Persistence: {}", map_data.noise.persistence));
+            let mut seed = map_data.noise.seed();
+            let mut octaves = map_data.noise.octaves;
+            let mut frequency = map_data.noise.frequency;
+            let mut lacunarity = map_data.noise.lacunarity;
+            let mut persistence = map_data.noise.persistence;
+            const MAX_OCTAVES: usize = Fbm::<Perlin>::MAX_OCTAVES - 2;
+            ui.add(egui::Slider::new(&mut seed, 0..=u32::MAX - MAX_OCTAVES as u32).text("Seed"));
+            ui.add(egui::Slider::new(&mut octaves, 1..=MAX_OCTAVES).text("Octaves"));
+            ui.add(egui::Slider::new(&mut frequency, 0.0..=2.0f64).text("Frequency"));
+            ui.add(egui::Slider::new(&mut lacunarity, 1.0..=3.5f64).text("Lacunarity"));
+            ui.add(egui::Slider::new(&mut persistence, 0.0..=1.0f64).text("Persistence"));
+            map_data.noise = Fbm::new(seed).set_octaves(octaves).set_frequency(frequency).set_lacunarity(lacunarity).set_persistence(persistence);
         });
     });
     egui::SidePanel::right("grid").show(egui_contexts.ctx_mut(), |ui| {
-        ui.label(format!("Width: {}", map_data.grid.width()));
-        ui.label(format!("Height: {}", map_data.grid.height()));
-        ui.label(format!("Sample Distance: {}", map_data.sample_distance));
+        let mut width = map_data.grid.width();
+        let mut height = map_data.grid.height();
+
+        ui.add(egui::Slider::new(&mut width, 1..=100).text("Width"));
+        ui.add(egui::Slider::new(&mut height, 1..=100).text("Height"));
+        ui.add(egui::Slider::new(&mut map_data.sample_distance, 0.0..=1.0f64).text("Sample Distance"));
+        ui.horizontal(|ui| {
+            ui.add(egui::DragValue::new(&mut map_data.sample_offset.0).speed(0.01));
+            ui.label("Offset X");
+        });
+        ui.horizontal(|ui| {
+            ui.add(egui::DragValue::new(&mut map_data.sample_offset.1).speed(0.01));
+            ui.label("Offset Y");
+        });
+        map_data.grid = Grid::new_default(Size::new(width, height));
+        map_data.update();
     });
     egui::CentralPanel::default().show(egui_contexts.ctx_mut(), |ui| {
         ui.vertical(|ui| {
@@ -90,8 +87,7 @@ fn draw_screen(mut egui_contexts: EguiContexts, map_data: ResMut<MapData>) {
                 ui.horizontal(|ui| {
                     for x in 0..map_data.grid.width() {
                         let mut value = String::new();
-                        value.push(
-                            *map_data.grid.get_checked(Coord::new(x as i32, y as i32)) as char
+                        value.push(*map_data.grid.get_checked(Coord::new(x as i32, y as i32)) as char
                         );
                         ui.monospace(value);
                     }
@@ -101,17 +97,3 @@ fn draw_screen(mut egui_contexts: EguiContexts, map_data: ResMut<MapData>) {
     });
 }
 
-fn update_grid(map_data: &mut MapData) {
-    for coord in map_data.grid.coord_iter() {
-        let height = map_data
-            .noise
-            .get([
-                coord.x as f64 * map_data.sample_distance + map_data.sample_offset.0,
-                coord.y as f64 * map_data.sample_distance + map_data.sample_offset.1,
-            ])
-            .abs();
-        let mut value = (height * 25.0 % 26.0) as u8;
-        value += 65;
-        *map_data.grid.get_checked_mut(coord) = value;
-    }
-}
